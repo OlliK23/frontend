@@ -2,24 +2,60 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Frontend v1.0</title>
+    <title>Frontend v2.0</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { margin-top: 24px; }
+        input, textarea { padding: 6px; font-size: 14px; }
+        button { padding: 6px 14px; font-size: 14px; cursor: pointer; }
+        #result { color: green; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h1>Версия 1.0</h1>
+    <h1>Frontend — версия 2.0</h1>
+
+    <!-- Блок 1: отправка данных (из v1.0) -->
+    <h2>1. Отправить данные на сервер</h2>
     <input type="text" id="textInput" placeholder="Введите текст">
     <button onclick="sendData()">Отправить</button>
     <p id="result"></p>
 
+    <!-- Блок 2: чтение данных (новое в v2.0) -->
+    <h2>2. Прочитать содержимое data.txt</h2>
+    <button onclick="loadData()">Загрузить data.txt</button>
+    <br><br>
+    <textarea id="output" rows="8" cols="60" readonly
+              placeholder="Здесь появится содержимое файла..."></textarea>
+
     <script>
+        // --- v1.0: POST на сервер ---
         async function sendData() {
             const text = document.getElementById('textInput').value;
-            const response = await fetch('http://127.0.0.1:5000/api/data', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text: text})
-            });
-            const result = await response.json();
-            document.getElementById('result').innerText = 'Ответ сервера: ' + result.status;
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/data', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: text})
+                });
+                const result = await response.json();
+                document.getElementById('result').innerText =
+                    'Ответ сервера: ' + result.status;
+            } catch (e) {
+                document.getElementById('result').innerText =
+                    'Ошибка: ' + e.message;
+            }
+        }
+
+        // --- v2.0: GET от сервера ---
+        async function loadData() {
+            const out = document.getElementById('output');
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/read');
+                const result = await response.json();
+                out.value = result.content || '(файл пуст)';
+            } catch (e) {
+                out.value = 'Ошибка загрузки: ' + e.message;
+            }
         }
     </script>
 </body>
