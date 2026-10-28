@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Frontend</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .message.success {
+            background: #e6f7ed;
+            color: #1a7f37;
+            border-left: 4px solid #1a7f37;
+        }
+
+        .message.error {
+            background: #fff0f0;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .names-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .names-list p {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e0e0e0;
+            color: #555;
+        }
+
+        .names-list p:last-child {
+            border-bottom: none;
+        }
+
+        .empty {
+            color: #999;
+            text-align: center;
+            font-style: italic;
+            padding: 20px 0;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Vue Frontend</h1>
+        <p class="subtitle">Лабораторная работа №2 — Docker + Vue</p>
+
+        <!-- Секция 1.0: Отправка имени -->
+        <div class="section">
+            <h2>📤 Версия 1.0: Отправить имя</h2>
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    v-model="name" 
+                    @keyup.enter="sendName"
+                    placeholder="Введите имя"
+                    :disabled="loading"
+                >
+                <button @click="sendName" :disabled="loading || !name.trim()">
+                    <span v-if="loading" class="spinner"></span>
+                    {{ loading ? 'Отправка...' : 'Отправить' }}
+                </button>
+            </div>
+            <div v-if="message.text" class="message" :class="message.type">
+                {{ message.text }}
+            </div>
+        </div>
+
+        <!-- Секция 2.0: Просмотр данных -->
+        <div class="section">
+            <h2>📋 Версия 2.0: Просмотр данных</h2>
+            <button @click="getNames" :disabled="loadingNames">
+                <span v-if="loadingNames" class="spinner"></span>
+                {{ loadingNames ? 'Загрузка...' : 'Показать имена' }}
+            </button>
+            <div class="names-list">
+                <p v-if="names.length === 0" class="empty">Список пуст</p>
+                <p v-for="(n, i) in names" :key="i">{{ i + 1 }}. {{ n }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    name: '',
+                    loading: false,
+                    loadingNames: false,
+                    message: { text: '', type: '' },
+                    names: []
+                };
+            },
+            methods: {
+                async sendName() {
+                    if (!this.name.trim() || this.loading) return;
+                    this.loading = true;
+                    this.message = { text: '', type: '' };
+
+                    try {
+                        const res = await fetch('/api/send-name', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: this.name })
+                        });
+                        const data = await res.json();
+                        this.message = {
+                            text: data.message || 'Данные отправлены',
+                            type: 'success'
+                        };
+                        this.name = '';
+                    } catch (e) {
+                        this.message = {
+                            text: 'Ошибка: ' + e.message,
+                            type: 'error'
+                        };
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async getNames() {
+                    this.loadingNames = true;
+                    try {
+                        const res = await fetch('/api/get-names');
+                        const text = await res.text();
+                        this.names = text
+                            .split('\n')
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0);
+                    } catch (e) {
+                        this.names = [];
+                    } finally {
+                        this.loadingNames = false;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
